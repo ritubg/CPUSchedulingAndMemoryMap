@@ -1,0 +1,43 @@
+/* Ensure the running-process-container is an oval */
+.running-process-container {
+    width: 200px; /* Oval container width */
+    height: 150px; /* Oval container height */
+    border-radius: 35px; /* Makes it oval */
+    background-color: #61df073b; /* Background color for the oval */
+    display: flex;
+    justify-content: center; /* Centers the circle horizontally inside the oval */
+    align-items: center; /* Centers the circle vertically inside the oval */
+    margin-left: auto; /* Automatically adjust left margin for centering */
+    margin-right: auto; /* Automatically adjust right margin for centering */
+    opacity: 0;
+    animation: moveProcessToRunningState 1s forwards;
+    box-shadow: none; /* Remove shadow around oval */
+    border: none; /* Remove border */
+    position: relative; /* Ensures proper positioning */
+}
+
+/* Ensure the process is displayed as a circle inside the oval */
+.running-process-circle {
+    width: 40px; /* Circle width */
+    height: 40px; /* Circle height */
+    border-radius: 50%; /* Makes it a circle */
+    background-color: #4CAF50; /* Circle background color */
+    color: white; /* Text color inside the circle */
+    text-align: center; /* Centers text horizontally */
+    line-height: 40px; /* Centers text vertically */
+    opacity: 0;
+    animation: moveProcessToRunningState 1s forwards;
+    position: absolute; /* Position it inside the container */
+}
+
+/* Animation for moving the process into view */
+@keyframes moveProcessToRunningState {
+    0% {
+        transform: translateX(200px); /* Start off-screen */
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0); /* Move to the final position */
+        opacity: 1;
+    }
+}
