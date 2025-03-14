@@ -1,29 +1,85 @@
-/* Existing app styles */
+/* Ensure the body and html elements use full width and prevent horizontal overflow */
 html, body {
   overflow-x: hidden;
-  width: 100%;  /* Ensure the body takes full width */
+  width: 100%;
 }
 
-.app {
-  text-align: center;
-  font-family: Arial, sans-serif;
-}
-
+/* Adjust the zoom for the entire page */
 body {
-  transform: scale(1.55); /* Zooms in the page by 20% */
-  transform-origin: top left; /* Ensures the zoom is from the top-left corner */
+  transform: scale(1.55);
+  transform-origin: top left;
 }
 
+/* Style for App component */
 .App {
   width: 100%;
   height: 100%;
+  display: flex; /* Use flexbox layout for aligning items */
+  flex-direction: row; /* Items will be placed side by side */
+  justify-content: space-between; /* Space out the components */
+  align-items: flex-start; /* Align items to the top */
+  gap: 2rem; /* Add space between left and right sections */
 }
 
-.form-container {
-  margin: 20px;
+/* Left container containing queues and process information */
+.left-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align to the left */
+  width: 50%; /* Take up 50% of the screen width */
+  gap: 2rem; /* Add space between each section */
 }
 
-input {
+/* Memory map section, should be on the right */
+.memory-map-container {
+  display: flex;
+  flex-direction: column;
+  width: 40%; /* Take up 40% of the screen width */
+  padding-left: 20px;
+}
+
+/* For each queue, ensure they have consistent styling */
+.queue {
+  width: 100%; /* Full width of the parent container */
+  border: 2px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 1rem; /* Add space between queues */
+}
+
+/* Style for running process and terminated process */
+.running-process,
+.terminated-process-list {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #ccc;
+  box-sizing: border-box;
+  margin-bottom: 1rem; /* Add space between sections */
+}
+
+/* Optional: Style for each memory block within the Memory Map */
+.memory-block {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+}
+
+.memory-block .process {
+  font-weight: bold;
+  color: #333;
+}
+
+.memory-map-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Button and Input Styling (existing styles) */
+button, input {
   margin: 10px;
   padding: 10px;
   border-radius: 5px;
@@ -31,31 +87,11 @@ input {
 }
 
 button {
-  padding: 10px 20px;
   background-color: #4CAF50;
   color: white;
-  border: none;
-  border-radius: 5px;
   cursor: pointer;
 }
 
 button:hover {
   background-color: #45a049;
-}
-
-.queues-container {
-  display: flex;             /* Use flexbox for alignment */
-  flex-direction: column;    /* Stack items vertically (top-bottom) */
-  align-items: center;       /* Center the items horizontally */
-  gap: 4cm;                  /* Adds space between Process Queue and Ready Queue */
-  margin-top: 20px;          /* Adds top margin to separate from other elements */
-}
-
-/* For each queue */
-.queue {
-  width: 30%;               /* Adjust the width of each queue */
-  border: 2px solid #ccc;   /* Optional: Border for visual separation */
-  padding: 10px;            /* Padding inside the box */
-  box-sizing: border-box;   /* Ensures padding is included in the width */
-  margin-left: -29%;         /* Adds space to the left of each queue */
 }

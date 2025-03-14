@@ -1,0 +1,23 @@
+.memory-block {
+  width: 180px; /* Increased width to make the block wider */
+  height: 60px; /* Increased height for a better appearance */
+  margin: 10px auto; /* Centers the block horizontally and adds some space */
+  border: 2px solid #ccc; /* Slightly thicker border for better visibility */
+  display: block; /* Stacks blocks vertically */
+  margin-bottom: 10px; /* Increased space between blocks */
+  text-align: center; /* Center the content inside the blocks */
+  border-radius: 8px; /* Rounded corners for a cleaner look */
+}
+
+.memory-block.allocated {
+  background-color: lightgreen;
+}
+
+.memory-block.free {
+  background-color: lightcoral;
+}
+
+.free-space {
+  font-size: 14px; /* Increased font size for better readability */
+  color: grey;
+}

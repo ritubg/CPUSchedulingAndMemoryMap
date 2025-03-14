@@ -1,7 +1,14 @@
 const { calculateTimes, generateGanttChart } = require('./utils');
 
 const sjfScheduling = (processes) => {
-  processes.sort((a, b) => a.burstTime - b.burstTime);
+  // Sort processes by arrival time first, then by burst time (Shortest Job First)
+  processes.sort((a, b) => {
+    if (a.arrivalTime === b.arrivalTime) {
+      return a.burstTime - b.burstTime;
+    }
+    return a.arrivalTime - b.arrivalTime;
+  });
+
   let currentTime = 0;
   const { totalWT, totalTT, schedule } = calculateTimes(processes, currentTime);
   const avgWT = totalWT / processes.length;
