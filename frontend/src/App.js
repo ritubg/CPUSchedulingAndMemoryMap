@@ -9,37 +9,46 @@ import ProcessQueue from './components/ProcessQueue';
 import ReadyQueue from './components/ReadyQueue';
 import RunningProcess from './components/RunningProcess';
 import TerminatedProcess from './components/TerminatedProcess';
-import GanttChart from './components/GanttChart';
-import CPUUtilization from './components/CpuUtilization';
-import MemoryMap from './components/memorymap'; // Import MemoryMap Component
-import { getFcfsData } from './services/api';
+import MemoryMap from './components/memorymap';
+
+// Import CPU image (assuming it's in the src/assets folder)
+import cpuImage from './assets/cpu.png'; // Update the path as needed
 
 const App = () => {
   const [processes, setProcesses] = useState([]);
-  const [ganttChart, setGanttChart] = useState([]);
-  const [cpuUtilization, setCpuUtilization] = useState(0);
   const [readyQueue, setReadyQueue] = useState([]);
   const [runningProcess, setRunningProcess] = useState(null);
   const [terminatedProcesses, setTerminatedProcesses] = useState([]);
   const [memoryBlocks, setMemoryBlocks] = useState(
-    new Array(15).fill(null).map(() => ({ size: Math.floor(Math.random() * 200) + 100, process: null }))
+    new Array(15).fill(null).map(() => ({
+      size: Math.floor(Math.random() * 901) + 100, // Generates a number between 100 and 1000
+      process: null,
+    }))
   );
-
+  const [ganttChart, setGanttChart] = useState([]);
+  const [cpuUtilization, setCpuUtilization] = useState(0);
+  const [totalBusyTime, setTotalBusyTime] = useState(0); // Track total busy time
+  const [simulationStartTime, setSimulationStartTime] = useState(Date.now()); // Track simulation start time
   // Function to add a new process
   const handleAddProcess = (process) => {
     const arrivalTime = Date.now();
-    const newProcess = { ...process, arrivalTime, memory: process.numPages * 100 }; // Calculate memory required
-    setProcesses([newProcess, ...processes]);
-    console.log('Processes:', processes); // Log to check the state
+    const newProcess = {
+      ...process,
+      arrivalTime,
+      memory: process.numPages * 100, // Calculate memory required
+      state: 'new', // Initial state
+    };
+    setProcesses([...processes, newProcess]);
+    console.log('Process added to Process Queue:', newProcess);
   };
 
-  // Function to allocate memory for a process
+  // Function to allocate memory for a process (best-fit algorithm)
   const allocateMemory = (process) => {
-    console.log('Attempting memory allocation for process:', process.pid);
-
     const requiredMemory = process.memory;
-    let allocated = false;
     let newMemoryBlocks = [...memoryBlocks];
+
+    console.log('Attempting to allocate memory for process:', process.pid, 'Required Memory:', requiredMemory);
+    console.log('Memory Blocks Before Allocation:', newMemoryBlocks);
 
     // Find the best-fit memory block
     let bestIndex = -1;
@@ -64,75 +73,85 @@ const App = () => {
 
       allocatedBlock.size = requiredMemory;
       setMemoryBlocks(newMemoryBlocks);
-      allocated = true;
-      console.log(`Memory allocated for process ${process.pid}`);
-    } else {
-      console.log(`Failed to allocate memory for process ${process.pid}`);
+
+      console.log('Memory Blocks After Allocation:', newMemoryBlocks);
+      return true; // Memory allocated successfully
     }
 
-    return allocated;
+    console.log('Memory Allocation Failed: No suitable block found');
+    return false; // Memory allocation failed
   };
 
-  // Function to move processes to the Ready Queue (SJF logic)
-  const moveToReadyQueueSJF = () => {
+  // Function to defragment memory
+  const defragmentMemory = () => {
+    console.log('Defragmenting Memory...');
+    let newMemoryBlocks = memoryBlocks.filter((block) => block.process !== null);
+    const freeMemory = memoryBlocks.reduce(
+      (sum, block) => (block.process === null ? sum + block.size : sum),
+      0
+    );
+    if (freeMemory > 0) {
+      newMemoryBlocks.push({ size: freeMemory, process: null });
+    }
+    setMemoryBlocks(newMemoryBlocks);
+    console.log('Memory Blocks After Defragmentation:', newMemoryBlocks);
+  };
+
+  // Function to move processes to the Ready Queue (FCFS logic)
+  const moveToReadyQueueFCFS = () => {
     if (processes.length === 0) {
-      console.log("No processes to move to Ready Queue.");
+      console.log('No processes in the Process Queue.');
       return;
     }
 
     let newProcessQueue = [...processes];
     let newReadyQueue = [...readyQueue];
 
-    // Sort processes by burst time (Shortest Job First)
-    newProcessQueue.sort((a, b) => a.burstTime - b.burstTime);
+    // Move the first process in the queue
+    const processToMove = newProcessQueue[0];
 
-    // Iterate through all processes in the queue
-    for (let i = 0; i < newProcessQueue.length; i++) {
-      const processToMove = newProcessQueue[i];
-      console.log('Process to move:', processToMove);
+    if (processToMove.numPages && processToMove.numPages > 0 && !isNaN(processToMove.burstTime)) {
+      console.log('Attempting to move process to Ready Queue:', processToMove.pid);
 
-      // Validate the process data
-      if (processToMove.numPages && processToMove.numPages > 0 && !isNaN(processToMove.burstTime)) {
-        const isMemoryAllocated = allocateMemory(processToMove);
-        console.log('Memory allocated:', isMemoryAllocated);
+      const isMemoryAllocated = allocateMemory(processToMove);
 
-        if (isMemoryAllocated) {
-          // Remove the process from the Process Queue
-          newProcessQueue.splice(i, 1);
-          // Add the process to the Ready Queue
-          newReadyQueue.push(processToMove);
+      if (isMemoryAllocated) {
+        // Remove the process from the Process Queue
+        newProcessQueue.splice(0, 1);
+        // Add the process to the Ready Queue with readyQueueArrivalTime
+        const processWithReadyQueueArrivalTime = {
+          ...processToMove,
+          readyQueueArrivalTime: Date.now(), // Record arrival time in ready queue
+        };
+        newReadyQueue.push(processWithReadyQueueArrivalTime);
 
-          // Update the state
-          setProcesses(newProcessQueue);
-          setReadyQueue(newReadyQueue);
+        // Update the state
+        setProcesses(newProcessQueue);
+        setReadyQueue(newReadyQueue);
 
-          // Exit the loop after allocating memory for one process
-          break;
-        }
+        console.log('Process moved to Ready Queue:', processToMove.pid);
       } else {
-        console.log('Invalid process data:', processToMove);
+        // If memory allocation fails, defragment memory and retry
+        console.log('Memory allocation failed. Defragmenting memory...');
+        defragmentMemory();
+        moveToReadyQueueFCFS(); // Retry after defragmentation
       }
+    } else {
+      console.log('Invalid process:', processToMove);
     }
   };
-
-  // Move processes from Process Queue to Ready Queue at random intervals (SJF)
-  useEffect(() => {
-    const getRandomInterval = () => Math.floor(Math.random() * 10) + 1; // Random interval between 1 and 10 seconds
-    const interval = setInterval(moveToReadyQueueSJF, getRandomInterval() * 1000); // Convert to milliseconds
-
-    return () => clearInterval(interval); // Clear the interval when the component unmounts
-  }, [processes, memoryBlocks]);
 
   // Move processes from Ready Queue to Running Process
   useEffect(() => {
     if (!runningProcess && readyQueue.length > 0) {
       const nextProcess = readyQueue[0];
       setReadyQueue((prevReadyQueue) => prevReadyQueue.slice(1)); // Remove from Ready Queue
-      setRunningProcess({ ...nextProcess, state: 'ready' });
-
-      setTimeout(() => {
-        setRunningProcess({ ...nextProcess, state: 'running' });
-      }, 5000);
+      setRunningProcess({ 
+        ...nextProcess,
+        state: 'running',
+        runningStartTime: Date.now(), // Record start time in running state
+      });
+      console.log('Process moved to Running State:', nextProcess.pid);
     }
   }, [readyQueue, runningProcess]);
 
@@ -140,10 +159,26 @@ const App = () => {
   useEffect(() => {
     if (runningProcess && runningProcess.state === 'running') {
       const timeout = setTimeout(() => {
-        setTerminatedProcesses((prevTerminatedProcesses) => [
-          ...prevTerminatedProcesses,
-          runningProcess,
-        ]);
+        // Check if the process is already in the terminated list
+        const isAlreadyTerminated = terminatedProcesses.some(
+          (process) => process.pid === runningProcess.pid
+        );
+
+        if (!isAlreadyTerminated) {
+          // Calculate waiting time
+          const waitingTime = (runningProcess.runningStartTime - runningProcess.readyQueueArrivalTime) / 1000; // Convert to seconds
+
+          setTerminatedProcesses((prevTerminatedProcesses) => [
+            ...prevTerminatedProcesses,
+            {
+              ...runningProcess,
+              waitingTime,
+              turnaroundTime: waitingTime + runningProcess.burstTime, // Turnaround time = waiting time + burst time
+            },
+          ]);
+          console.log('Process moved to Terminated State:', runningProcess.pid);
+        }
+
         setRunningProcess(null);
 
         // Free memory occupied by the terminated process
@@ -151,11 +186,48 @@ const App = () => {
           block.process && block.process.pid === runningProcess.pid ? { ...block, process: null } : block
         );
         setMemoryBlocks(newMemoryBlocks);
-      }, runningProcess.burstTime * 1000);
 
-      return () => clearTimeout(timeout); // Clear timeout when the component unmounts
+        // Update Gantt Chart
+        setGanttChart((prevGanttChart) => [
+          ...prevGanttChart,
+          {
+            pid: runningProcess.pid,
+            start: runningProcess.runningStartTime,
+            end: Date.now(),
+          },
+        ]);
+
+        // Update CPU Utilization
+        const busyTime = runningProcess.burstTime * 1000;
+        setTotalBusyTime((prevTotalBusyTime) => prevTotalBusyTime + busyTime);
+
+        const totalSimulationTime = Date.now() - simulationStartTime;
+        const utilization = (totalBusyTime + busyTime) / totalSimulationTime * 100;
+        setCpuUtilization(utilization);      }, runningProcess.burstTime * 1000);
+
+      return () => clearTimeout(timeout);
     }
-  }, [runningProcess, memoryBlocks]);
+  }, [runningProcess, memoryBlocks, terminatedProcesses]);
+
+  // Automatically move processes to the Ready Queue every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(moveToReadyQueueFCFS, 5000); // Move every 5 seconds
+    return () => clearInterval(interval);
+  }, [processes, memoryBlocks]);
+
+  // Calculate Waiting Time (WT) and Turnaround Time (TT)
+  const calculateMetrics = () => {
+    const avgWaitingTime =
+      terminatedProcesses.reduce((sum, process) => sum + process.waitingTime, 0) /
+        terminatedProcesses.length || 0;
+    const avgTurnaroundTime =
+      terminatedProcesses.reduce((sum, process) => sum + process.turnaroundTime, 0) /
+        terminatedProcesses.length || 0;
+
+    return { avgWaitingTime, avgTurnaroundTime };
+  };
+
+  const { avgWaitingTime, avgTurnaroundTime } = calculateMetrics();
 
   return (
     <Router>
@@ -165,82 +237,111 @@ const App = () => {
           <Route
             path="/fcfs"
             element={
-              <div>
-                <h1 style={{ marginLeft: '25px' }}>FCFS Scheduling Algorithm</h1>
-                <ProcessInput onAddProcess={handleAddProcess} />
-
-                {/* Memory Map Section */}
-                <div className="memory-map-container">
-                  <MemoryMap memoryBlocks={memoryBlocks} />
+              <div className="main-container">
+                {/* Input Section at the Top */}
+                <div className="input-section">
+                  <h1>FCFS Scheduling Algorithm</h1>
+                  <ProcessInput onAddProcess={handleAddProcess} />
                 </div>
 
-                {/* Queues Section */}
-                <div className="queues-container">
-                  <div className="queue">
-                    <h2>Process Queue</h2>
-                    <ProcessQueue processes={processes} />
+                {/* Memory Map and Queues Section */}
+                <div className="content-container">
+                  {/* Memory Map Section */}
+                  <div className="memory-map-container">
+                    <MemoryMap memoryBlocks={memoryBlocks} />
                   </div>
 
-                  <div className="queue">
-                    <h2>Ready Queue</h2>
-                    <ReadyQueue readyQueue={readyQueue} />
-                  </div>
+                  {/* Queues Section */}
+                  <div className="queues-container">
+                    {/* Process Queue */}
+                    <div className="queue">
+                      <h2>Process Queue</h2>
+                      <ProcessQueue processes={processes} />
+                    </div>
 
-                  <RunningProcess runningProcess={runningProcess} />
+                    {/* Ready Queue */}
+                    <div className="queue">
+                      <h2>Ready Queue</h2>
+                      <ReadyQueue readyQueue={readyQueue} />
+                    </div>
 
-                  <div className="queue">
-                    <h2>Terminated Processes</h2>
-                    <div className="terminated-process-list">
-                      {terminatedProcesses.map((terminatedProcess) => (
-                        <TerminatedProcess
-                          key={terminatedProcess.arrivalTime}
-                          terminatedProcess={terminatedProcess}
-                        />
-                      ))}
+                    {/* Running Process */}
+                    <div className="running-process-container">
+                      <h2>Running Process</h2>
+                      <img src={cpuImage} alt="CPU" className="cpu-image" />
+                      <div className="running-process-circle">
+                        {runningProcess ? runningProcess.pid : ""}
+                      </div>
+                    </div>
+
+                    {/* Terminated Processes */}
+                    <div className="queue">
+                      <h2>Terminated Processes</h2>
+                      <div className="terminated-process-container">
+                        {terminatedProcesses.map((process) => (
+                          <div key={process.pid} className="process-info">
+                            <div className="terminated-process-circle">
+                              {process.pid}
+                            </div>
+                            <div className="terminated-process-burst-time">
+                              Burst Time: {process.burstTime}
+                            </div>
+                            <div className="terminated-process-waiting-time">
+                              Waiting Time: {process.waitingTime.toFixed(2)}s
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            }
-          />
-          <Route
-            path="/sjf"
-            element={
-              <div>
-                <h1 style={{ marginLeft: '25px' }}>SJF Scheduling Algorithm</h1>
-                <ProcessInput onAddProcess={handleAddProcess} />
 
-                {/* Memory Map Section */}
-                <div className="memory-map-container">
-                  <MemoryMap memoryBlocks={memoryBlocks} />
-                </div>
-
-                {/* Queues Section */}
-                <div className="queues-container">
-                  <div className="queue">
-                    <h2>Process Queue</h2>
-                    <ProcessQueue processes={processes} />
-                  </div>
-
-                  <div className="queue">
-                    <h2>Ready Queue</h2>
-                    <ReadyQueue readyQueue={readyQueue} />
-                  </div>
-
-                  <RunningProcess runningProcess={runningProcess} />
-
-                  <div className="queue">
-                    <h2>Terminated Processes</h2>
-                    <div className="terminated-process-list">
-                      {terminatedProcesses.map((terminatedProcess) => (
-                        <TerminatedProcess
-                          key={terminatedProcess.arrivalTime}
-                          terminatedProcess={terminatedProcess}
-                        />
+                {/* Metrics Section */}
+                <div className="metrics-container">
+                  <h2>Results</h2>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Process ID</th>
+                        <th>Waiting Time (WT)</th>
+                        <th>Turnaround Time (TT)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {terminatedProcesses.map((process) => (
+                        <tr key={process.pid}>
+                          <td>{process.pid}</td>
+                          <td>{process.waitingTime.toFixed(2)}</td>
+                          <td>{process.turnaroundTime.toFixed(2)}</td>
+                        </tr>
                       ))}
-                    </div>
+                    </tbody>
+                  </table>
+                  <div className="avg-metrics">
+                    <p>Average Waiting Time: {avgWaitingTime.toFixed(2)}</p>
+                    <p>Average Turnaround Time: {avgTurnaroundTime.toFixed(2)}</p>
+                    <p>CPU Utilization: {cpuUtilization.toFixed(2)}%</p>
                   </div>
                 </div>
+
+                {/* Gantt Chart Section */}
+                <div className="gantt-chart-container">
+                  <h2>Gantt Chart</h2>
+                  <div className="gantt-chart">
+                    {ganttChart.map((entry, index) => (
+                      <div key={index} className="gantt-entry">
+                        <div className="gantt-process">P{entry.pid}</div>
+                        <div className="gantt-time">
+                          {new Date(entry.start).toLocaleTimeString()} -{" "}
+                          {new Date(entry.end).toLocaleTimeString()}
+                        </div>
+                      </div>
+            ))}
+                  </div>
+            
+                </div>
+                <div style={{ width: '100px' }}></div>
+
               </div>
             }
           />

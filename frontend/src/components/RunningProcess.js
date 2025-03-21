@@ -1,4 +1,4 @@
-import React from 'react';
+//import React from 'react';
 import '../Styles/RunningProcess.css'; // Ensure this path is correct for your CSS file
 const RunningProcess = ({ runningProcess }) => {
   return (

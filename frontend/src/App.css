@@ -1,97 +1,358 @@
-/* Ensure the body and html elements use full width and prevent horizontal overflow */
+/* Global Styles */
 html, body {
-  overflow-x: hidden;
+  overflow-x: hidden; /* Disable horizontal scrolling */
   width: 100%;
-}
-
-/* Adjust the zoom for the entire page */
-body {
-  transform: scale(1.55);
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #edc7b3; /* Light pastel background for the entire page */
+  transform: scale(1.5); /* Zoom in the entire page */
   transform-origin: top left;
 }
 
-/* Style for App component */
+/* App Container */
 .App {
   width: 100%;
-  height: 100%;
-  display: flex; /* Use flexbox layout for aligning items */
-  flex-direction: row; /* Items will be placed side by side */
-  justify-content: space-between; /* Space out the components */
-  align-items: flex-start; /* Align items to the top */
-  gap: 2rem; /* Add space between left and right sections */
-}
-
-/* Left container containing queues and process information */
-.left-container {
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Align to the left */
-  width: 50%; /* Take up 50% of the screen width */
-  gap: 2rem; /* Add space between each section */
-}
-
-/* Memory map section, should be on the right */
-.memory-map-container {
-  display: flex;
-  flex-direction: column;
-  width: 40%; /* Take up 40% of the screen width */
-  padding-left: 20px;
-}
-
-/* For each queue, ensure they have consistent styling */
-.queue {
-  width: 100%; /* Full width of the parent container */
-  border: 2px solid #ccc;
-  padding: 10px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 20px;
   box-sizing: border-box;
-  margin-bottom: 1rem; /* Add space between queues */
 }
 
-/* Style for running process and terminated process */
-.running-process,
-.terminated-process-list {
+/* Main Container */
+.main-container {
   width: 100%;
-  padding: 10px;
-  border: 2px solid #ccc;
-  box-sizing: border-box;
-  margin-bottom: 1rem; /* Add space between sections */
-}
-
-/* Optional: Style for each memory block within the Memory Map */
-.memory-block {
-  margin-bottom: 10px;
-  padding: 10px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column; /* Arrange input section and content vertically */
+  gap: 20px;
 }
 
-.memory-block .process {
+/* Input Section at the Top */
+  .input-section {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 20px;
+  }
+
+.input-section h1 {
+  margin: 0 0 45px 0;
+  font-size: 5rem;
+  color: #333;
+}
+
+/* Content Container (Memory Map and Queues) */
+.content-container {
+  width: 80%;
+  display: flex;
+  flex-direction: row; /* Arrange memory map and queues side by side */
+  gap: 35px;
+}
+
+/* Left Section (35%) - Memory Map */
+.memory-map-container {
+  width: 10%;
+  background-color: #c18c87; /* White background for memory map */
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-size: 1.5rem;
+
+}
+
+/* Right Section (65%) - Queues */
+.queues-container {
+  width: 40%;
+  display: flex;
+  flex-direction: column; /* Arrange queues vertically */
+  gap: 70px;
+}
+
+/* Queue Card Styling */
+.queue {
+  width: 100%;
+  background-color: #ffffff; /* White background for cards */
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(27, 25, 25, 0.817);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.queue:hover {
+  transform: translateY(-5px); /* Slight lift on hover */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+.queue h2 {
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+/* Process Queue */
+.process-queue {
+  display: flex;
+  justify-content: flex-start; /* Align processes from left to right */
+  align-items: center;
+  margin-top: 20px;
+  overflow: hidden;
+  height: 120px;
+  width: 100%;
+  position: relative;
+  
+}
+
+.process-circle {
+  width: 80px; /* Bigger circles */
+  height: 80px;
+  border-radius: 80%;
+  background-color: #ffd034; /* Pastel yellow */
+  color: white;
+  text-align: center;
+  line-height: 100px;
+  margin-right: 40px; /* Space between circles */
+  opacity: 0;
+  font-size: 2.5rem; /* Larger font size */
+
+  animation: moveProcess 2s forwards; /* Animation to move process from left to right */
+}
+
+@keyframes moveProcess {
+  0% {
+    transform: translateX(-200px); /* Start position: off-screen left */
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0); /* End position: normal position */
+    opacity: 1;
+  }
+}
+
+/* Ready Queue */
+.ready-queue {
+  display: flex;
+  justify-content: flex-start; /* Align processes from left to right */
+  align-items: center;
+  margin-top: 20px;
+  overflow: hidden;
+  height: 120px;
+  width: 100%;
+  position: relative;
+}
+
+.ready-process {
+  width: 80px; /* Bigger circles */
+  height: 80px;
+  border-radius: 80%;
+  background-color: #2196F3; /* Pastel blue */
+  color: white;
+  text-align: center;
+  line-height: 100px;
+  margin-right: 40px; /* Space between circles */
+  opacity: 0;
+  font-size: 2.5rem; /* Larger font size */
+
+  animation: moveProcessToReadyQueue 4s forwards;
+}
+
+@keyframes moveProcessToReadyQueue {
+  0% {
+    transform: translateX(200px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Running Process */
+.running-process-container {
+  margin-top: 40px;
+  background-color: #61df073b; /* Background color for the oval */
+  display: flex;
+  animation: moveProcessToRunningState 2s forwards;
+  box-shadow: none; /* Remove shadow around oval */
+  border: none; /* Remove border */
+  position: relative; /* Ensures proper positioning */
+}
+
+.running-process-circle {
+  width: 100px; /* Bigger circle */
+  height: 100px;
+  border-radius: 100%; /* Makes it a circle */
+  background-color: #4CAF50; /* Circle background color */
+  color: white; /* Text color inside the circle */
+  text-align: center; /* Centers text horizontally */
+  line-height: 100px; /* Centers text vertically */
+  opacity: 0;
+  animation: moveProcessToRunningState 3s forwards;
+  font-size: 2.5rem; /* Larger font size */
+
+  position: absolute; /* Position it inside the container */
+}
+/* CPU Image Animation */
+.cpu-image {
+  width: 300px; /* Smaller CPU image */
+  height: 300px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: rotateCPU 10s linear infinite;
+}
+
+@keyframes rotateCPU {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@keyframes moveProcessToRunningState {
+  0% {
+    transform: translateX(200px); /* Start off-screen */
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0); /* Move to the final position */
+    opacity: 1;
+  }
+}
+/* Terminated Processes */
+.terminated-process-container {
+  width: 100%; /* Full width */
+  background-color: #f2b0b0; /* Light red background for terminated */
+  display: flex;
+  flex-direction: column-reverse; /* Align items vertically, reverse order */
+  border-radius: 10px; /* Rounded corners */
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: moveProcessToTerminatedState 1s forwards;
+  gap: 10px; /* Space between process info */
+  overflow-y: auto; /* Add scroll if content overflows */
+  max-height: 300px; /* Limit height to prevent overflow */
+}
+
+/* Circle for PID */
+.terminated-process-circle {
+  width: 80px; /* Bigger circle */
+  height: 80px;
+  border-radius: 50%; /* Makes it a circle */
+  background-color: #ff6347; /* Red color for terminated process */
+  color: white; /* Text color inside the circle */
+  text-align: center; /* Centers text horizontally */
+  line-height: 80px; /* Centers text vertically */
+  font-size: 1.5rem; /* Larger font size */
+}
+
+/* Display burst time */
+.terminated-process-burst-time {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333; /* Text color for burst time */
+}
+
+@keyframes moveProcessToTerminatedState {
+  0% {
+    transform: translateX(200px); /* Start off-screen */
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0); /* Move to the final position */
+    opacity: 1;
+  }
+}
+
+.metrics-container {
+  width: 20%;
+  margin: 40px 0 40px 500px; /* Moves it 10px to the right */
+  padding: 20px;
+  background-color: #b2d2de; /* White background */
+  border-radius: 45px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.metrics-container h2 {
+  margin: 0 0 50px 0;
+  font-size: 2rem;
+  color: #333;
+}
+
+.metrics-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.metrics-container th,
+.metrics-container td {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #070707;
+}
+
+.metrics-container th {
+  background-color: b2d2de; /* Light pastel background for table header */
+  font-weight: bold;
+  font-size: 1.8rem;
+
+}
+
+.metrics-container td {
+  background-color: #ffffff; /* White background for table cells */
+  font-size: 1.8rem;
+}
+
+.avg-metrics {
+  margin-top: 20px;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #333;
 }
 
-.memory-map-container {
+.avg-metrics p {
+  margin: 5px 0;
+} 
+
+/* Gantt Chart Section */
+.gantt-chart-container {
+  width: 43%;
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #ffffff; /* White background */
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.gantt-chart-container h2 {
+  margin: 0 0 40px 0;
+  font-size: 2.5rem;
+  color: #333;
+}
+
+.gantt-chart {
+  display: flex;
+  gap: 50px;
+}
+
+.gantt-entry {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  gap: 5px;
 }
 
-/* Button and Input Styling (existing styles) */
-button, input {
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+.gantt-process {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #333;
 }
 
-button {
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #45a049;
+.gantt-time {
+  font-size: 1.5  rem;
+  color: #000000;
 }

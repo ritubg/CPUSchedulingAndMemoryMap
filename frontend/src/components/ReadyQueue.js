@@ -1,4 +1,4 @@
-import '../Styles/ReadyQueue.css';
+//import '../Styles/ReadyQueue.css';
 import React, { useEffect } from 'react';
 
 const ReadyQueue = ({ readyQueue }) => {

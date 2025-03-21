@@ -1,4 +1,4 @@
-import '../Styles/ProcessQueue.css';
+//import '../Styles/ProcessQueue.css';
 import React, { useEffect } from 'react';
 
 const ProcessQueue = ({ processes }) => {
