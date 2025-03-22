@@ -6,10 +6,13 @@ const sjfRoutes = require('./routes/sjfRoutes');
 const app = express();
 const port = 5000;
 
+// Middleware to parse JSON bodies
 app.use(express.json());
+
+// Enable CORS
 app.use(cors());
 
-// API Routes 
+// API Routes
 app.use('/fcfs', fcfsRoutes);
 app.use('/sjf', sjfRoutes);
 

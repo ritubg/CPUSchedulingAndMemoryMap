@@ -9,7 +9,7 @@ const Home = () => {
         <ul>
           <li><Link to="/fcfs">FCFS Scheduling</Link></li>
           <li><Link to="/sjf">SJF Scheduling</Link></li>
-          <li><Link to="/srtf">SRTF Scheduling</Link></li>
+          <li><Link to="/rr">RR Scheduling</Link></li>
         </ul>
       </nav>
     </div>

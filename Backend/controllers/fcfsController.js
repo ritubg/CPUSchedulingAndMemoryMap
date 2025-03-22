@@ -11,4 +11,4 @@ const fcfsScheduling = (processes) => {
   return { schedule, ganttChart: generateGanttChart(schedule), avgWT, avgTT, cpuUtilization };
 };
 
-module.exports = fcfsScheduling;
+module.exports = { fcfsScheduling };

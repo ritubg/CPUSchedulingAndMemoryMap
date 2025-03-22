@@ -356,3 +356,57 @@ html, body {
   font-size: 1.5  rem;
   color: #000000;
 }
+
+/* Blocked Processes Section */
+.blocked-process-container {
+  width: 100%; /* Full width */
+  background-color: #fff3e0; /* Light orange background for blocked processes */
+  border-radius: 10px; /* Rounded corners */
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  margin-top: 20px; /* Space above the blocked processes section */
+  opacity: 0;
+  animation: moveProcessToBlockedState 1s forwards; /* Animation for entry */
+}
+
+@keyframes moveProcessToBlockedState {
+  0% {
+    transform: translateX(200px); /* Start off-screen */
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0); /* Move to the final position */
+    opacity: 1;
+  }
+}
+
+.blocked-process-container h2 {
+  margin: 0 0 15px 0;
+  font-size: 2rem;
+  color: #e65100; /* Dark orange for heading */
+}
+
+.blocked-process-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px; /* Space between elements */
+}
+
+.blocked-process-circle {
+  width: 80px; /* Bigger circle */
+  height: 80px;
+  border-radius: 50%; /* Makes it a circle */
+  background-color: #ff9800; /* Orange color for blocked process */
+  color: white; /* Text color inside the circle */
+  text-align: center; /* Centers text horizontally */
+  line-height: 80px; /* Centers text vertically */
+  font-size: 1.5rem; /* Larger font size */
+}
+
+.blocked-process-burst-time,
+.blocked-process-waiting-time {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333; /* Text color for burst time and waiting time */
+}
