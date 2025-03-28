@@ -168,7 +168,6 @@ html, body {
   }
 }
 
-/* Running Process */
 .running-process-container {
   margin-top: 40px;
   background-color: #61df073b; /* Background color for the oval */
@@ -180,20 +179,23 @@ html, body {
 }
 
 .running-process-circle {
-  width: 100px; /* Bigger circle */
-  height: 100px;
-  border-radius: 100%; /* Makes it a circle */
-  background-color: #4CAF50; /* Circle background color */
-  color: white; /* Text color inside the circle */
-  text-align: center; /* Centers text horizontally */
-  line-height: 100px; /* Centers text vertically */
-  opacity: 0;
-  animation: moveProcessToRunningState 3s forwards;
-  font-size: 2.5rem; /* Larger font size */
-
-  position: absolute; /* Position it inside the container */
+  width: 50px; /* Adjust size to fit inside the green square */
+  height: 50px;
+  border-radius: 50%; /* Circular shape */
+  background-color: #4CAF50; /* Green color */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  
+  position: absolute;
+  top: 50%; /* Center vertically within the green square */
+  left: 50%; /* Center horizontally within the green square */
+  transform: translate(-50%, -50%); /* Precise centering */
+  z-index: 10; /* Ensure it's on top of other elements */
 }
-/* CPU Image Animation */
+
 .cpu-image {
   width: 300px; /* Smaller CPU image */
   height: 300px;
@@ -202,6 +204,7 @@ html, body {
   left: 50%;
   transform: translate(-50%, -50%);
   animation: rotateCPU 10s linear infinite;
+  z-index: 5; /* Ensure CPU image is behind the process */
 }
 
 @keyframes rotateCPU {

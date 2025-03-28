@@ -5,18 +5,31 @@ const ProcessInput = ({ onAddProcess, algorithm }) => {
   const [numPages, setNumPages] = useState('');
   const [burstTime, setBurstTime] = useState('');
   const [timeQuantum, setTimeQuantum] = useState(''); // For RR only
+  const [priority, setPriority] = useState(''); // For Priority algorithm
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const process = { pid, numPages: parseInt(numPages), burstTime: parseInt(burstTime) };
+    const process = { 
+      pid, 
+      numPages: parseInt(numPages), 
+      burstTime: parseInt(burstTime) 
+    };
+
+    // Add priority for priority algorithm
+    if (algorithm === 'priority') {
+      process.priority = parseInt(priority);
+    }
+
     if (algorithm === 'rr' && timeQuantum) {
       process.timeQuantum = parseInt(timeQuantum);
     }
+
     onAddProcess(process);
     setPid('');
     setNumPages('');
     setBurstTime('');
     setTimeQuantum('');
+    setPriority('');
   };
 
   const inputStyle = {
@@ -31,9 +44,27 @@ const ProcessInput = ({ onAddProcess, algorithm }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input type="text" style={inputStyle} placeholder="Process ID" value={pid} onChange={(e) => setPid(e.target.value)} />
-      <input type="number" style={inputStyle} placeholder="Number of Pages" value={numPages} onChange={(e) => setNumPages(e.target.value)} />
-      <input type="number" style={inputStyle} placeholder="Burst Time" value={burstTime} onChange={(e) => setBurstTime(e.target.value)} />
+      <input 
+        type="text" 
+        style={inputStyle} 
+        placeholder="Process ID" 
+        value={pid} 
+        onChange={(e) => setPid(e.target.value)} 
+      />
+      <input 
+        type="number" 
+        style={inputStyle} 
+        placeholder="Number of Pages" 
+        value={numPages} 
+        onChange={(e) => setNumPages(e.target.value)} 
+      />
+      <input 
+        type="number" 
+        style={inputStyle} 
+        placeholder="Burst Time" 
+        value={burstTime} 
+        onChange={(e) => setBurstTime(e.target.value)} 
+      />
       {algorithm === 'rr' && (
         <input
           type="number"
@@ -43,7 +74,26 @@ const ProcessInput = ({ onAddProcess, algorithm }) => {
           onChange={(e) => setTimeQuantum(e.target.value)}
         />
       )}
-      <button type="submit" style={{ width: "200px", height: "50px", fontSize: "1.2rem", marginTop: "10px" }}>Add Process</button>
+      {algorithm === 'priority' && (
+        <input
+          type="number"
+          style={inputStyle}
+          placeholder="Priority (Lower number = Higher priority)"
+          value={priority}
+          onChange={(e) => setPriority(e.target.value)}
+        />
+      )}
+      <button 
+        type="submit" 
+        style={{ 
+          width: "200px", 
+          height: "50px", 
+          fontSize: "1.2rem", 
+          marginTop: "10px" 
+        }}
+      >
+        Add Process
+      </button>
     </form>
   );
 };
