@@ -11,20 +11,17 @@ const ProcessInput = ({ onAddProcess, algorithm }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // If it's RR algorithm and time quantum is provided, but we're submitting a process
     if (algorithm === 'rr') {
-      // For the first submission, include the time quantum
       if (!timeQuantumSet && timeQuantum) {
         const process = {
           pid,
           numPages: parseInt(numPages),
           burstTime: parseInt(burstTime),
-          timeQuantum: parseInt(timeQuantum) // Send time quantum with first process
+          timeQuantum: parseInt(timeQuantum)
         };
         onAddProcess(process);
         setTimeQuantumSet(true);
       } else {
-        // For subsequent processes, don't include time quantum
         const process = {
           pid,
           numPages: parseInt(numPages),
@@ -33,14 +30,12 @@ const ProcessInput = ({ onAddProcess, algorithm }) => {
         onAddProcess(process);
       }
     } else {
-      // For non-RR algorithms
       const process = {
         pid,
         numPages: parseInt(numPages),
         burstTime: parseInt(burstTime)
       };
       
-      // Add priority for priority algorithm
       if (algorithm === 'priority') {
         process.priority = parseInt(priority);
       }
@@ -48,17 +43,11 @@ const ProcessInput = ({ onAddProcess, algorithm }) => {
       onAddProcess(process);
     }
     
-    // Reset form fields
     setPid('');
     setNumPages('');
     setBurstTime('');
     setPriority('');
     
-    // Don't reset timeQuantum once it's set
-    // This line isn't necessary since we don't reset timeQuantum anymore
-    // if (!timeQuantumSet) {
-    //   setTimeQuantum('');
-    // }
   };
   const inputStyle = {
     width: "250px",

@@ -13,10 +13,8 @@ const App = () => {
   const [readyQueue, setReadyQueue] = useState([]);
   const [runningProcess, setRunningProcess] = useState(null);
   const [terminatedProcesses, setTerminatedProcesses] = useState([]);
-  
   const [blockedProcesses, setBlockedProcesses] = useState([]);
-  const [globalTimeQuantum, setGlobalTimeQuantum] = useState(5); // Default to 5 seconds
-
+  const [globalTimeQuantum, setGlobalTimeQuantum] = useState(5);
   const [memoryBlocks, setMemoryBlocks] = useState(
     new Array(15).fill(null).map(() => ({
       size: Math.floor(Math.random() * 901) + 100,
@@ -27,30 +25,24 @@ const App = () => {
   const [cpuUtilization, setCpuUtilization] = useState(0);
   const [totalBusyTime, setTotalBusyTime] = useState(0);
   const [simulationStartTime, setSimulationStartTime] = useState(Date.now());
-  
-  const MEMORY_ALLOCATION_INTERVAL = 4000; // 4 seconds
+  const MEMORY_ALLOCATION_INTERVAL = 4000;
 
-  // Dynamically determine current scheduling algorithm based on route
   const getCurrentSchedulingAlgorithm = () => {
     const path = window.location.pathname;
     if (path === '/fcfs') return 'FCFS';
     if (path === '/sjf') return 'SJF';
     if (path === '/rr') return 'RR';
     if (path === '/priority') return 'Priority';
-
-    return 'RR'; // Default
+    return 'RR';
   };
 
   const [currentSchedulingAlgorithm, setCurrentSchedulingAlgorithm] = useState(
     getCurrentSchedulingAlgorithm()
   );
 
-  // Enhanced Memory Allocation Function
   const allocateMemory = useCallback((process) => {
     const requiredMemory = process.memory;
     let newMemoryBlocks = [...memoryBlocks];
-
-    // Check if process is already in memory
     const alreadyAllocated = newMemoryBlocks.some(block => 
       block.process?.pid === process.pid
     );
@@ -58,7 +50,6 @@ const App = () => {
       return false;
     }
 
-    // Find best-fit block with minimal splitting
     let bestIndex = -1;
     let bestFitSize = Infinity;
 
@@ -71,105 +62,73 @@ const App = () => {
 
     if (bestIndex !== -1) {
       const block = newMemoryBlocks[bestIndex];
-      
-      // Preserve remaining memory as a separate block if significant
       if (block.size > requiredMemory + 50) {
         const remainingBlock = {
           size: block.size - requiredMemory,
           process: null
         };
-        
         const insertIndex = newMemoryBlocks.indexOf(block) + 1;
         newMemoryBlocks.splice(insertIndex, 0, remainingBlock);
-        
         block.size = requiredMemory;
         block.process = process;
       } else {
         block.process = process;
       }
-
       setMemoryBlocks(newMemoryBlocks);
       return true;
     }
-    
     return false;
   }, [memoryBlocks]);
 
-  // Periodic Memory Allocation for All Processes
   const periodicMemoryAllocation = useCallback(() => {
-    // Attempt to allocate memory for processes in order
     let updatedProcesses = [...processes];
-    
     processes.forEach((process) => {
-      // Try to allocate memory for each process
       if (allocateMemory(process)) {
-        // If memory allocated successfully, move to ready queue
         const processToMove = {
           ...process, 
           readyQueueArrivalTime: Date.now(), 
           state: 'ready'
         };
-        
         setReadyQueue(prev => [...prev, processToMove]);
-        
-        // Remove from original process list
         updatedProcesses = updatedProcesses.filter(p => p.pid !== process.pid);
       }
     });
-
-    // Update processes state with remaining unallocated processes
     setProcesses(updatedProcesses);
   }, [processes, allocateMemory]);
 
-  // Process Addition Handler
   const handleAddProcess = (process) => {
     const arrivalTime = Date.now();
-    
- if (process.timeQuantum) {
-  setGlobalTimeQuantum(process.timeQuantum);
-}
-
-    // Use user-provided PID, or generate one if not provided
+    if (process.timeQuantum) {
+      setGlobalTimeQuantum(process.timeQuantum);
+    }
     const pid = process.pid || `P${processes.length + 1}`;
-    
     const newProcess = {
       ...process,
-      pid, // Use the selected PID
+      pid,
       arrivalTime,
       memory: process.numPages * 100,
       state: 'new',
       remainingTime: process.burstTime
     };
-    
     setProcesses(prevProcesses => [...prevProcesses, newProcess]);
   };
 
-  // Periodic Memory Allocation Trigger
   useEffect(() => {
     const interval = setInterval(periodicMemoryAllocation, MEMORY_ALLOCATION_INTERVAL);
     return () => clearInterval(interval);
   }, [periodicMemoryAllocation]);
 
-  // Process Execution Handler for FCFS and SJF
   const executeProcessFCFSSJF = useCallback((selectedProcess) => {
     if (!selectedProcess) return;
-
-    // Remove from ready queue
     setReadyQueue(prev => prev.filter(p => p.pid !== selectedProcess.pid));
-
-    // Set as running process
     const runningProcessWithStartTime = {
       ...selectedProcess,
       state: 'running',
       runningStartTime: Date.now()
     };
     setRunningProcess(runningProcessWithStartTime);
-
-    // Timeout for executing the full process
     const timeout = setTimeout(() => {
       const waitingTime = (runningProcessWithStartTime.runningStartTime - runningProcessWithStartTime.readyQueueArrivalTime) / 1000;
-      
-      // Move to terminated processes
       setTerminatedProcesses(prev => [
         ...prev,
         {
@@ -179,8 +138,6 @@ const App = () => {
           state: 'terminated'
         }
       ]);
-
-      // Free memory
       setMemoryBlocks(prev => 
         prev.map(block => 
           block.process?.pid === runningProcessWithStartTime.pid 
@@ -188,8 +145,6 @@ const App = () => {
             : block
         )
       );
-
-      // Update Gantt Chart
       setGanttChart(prev => [
         ...prev,
         {
@@ -198,30 +153,21 @@ const App = () => {
           end: Date.now()
         }
       ]);
-
-  // For FCFS/SJF where processes run to completion
-const busyTime = runningProcessWithStartTime.burstTime * 1000;
-setTotalBusyTime(prev => {
-  const newTotalBusyTime = prev + busyTime;
-  const totalSimulationTime = Date.now() - simulationStartTime;
-  const utilization = (newTotalBusyTime / totalSimulationTime) * 100;
-  setCpuUtilization(utilization);
-  return newTotalBusyTime;
-});
-      // Reset running process
+      const busyTime = runningProcessWithStartTime.burstTime * 1000;
+      setTotalBusyTime(prev => {
+        const newTotalBusyTime = prev + busyTime;
+        const totalSimulationTime = Date.now() - simulationStartTime;
+        const utilization = (newTotalBusyTime / totalSimulationTime) * 100;
+        setCpuUtilization(utilization);
+        return newTotalBusyTime;
+      });
       setRunningProcess(null);
     }, runningProcessWithStartTime.burstTime * 1000);
   }, [simulationStartTime, totalBusyTime]);
 
-
-  
   const executeProcessRR = useCallback((selectedProcess) => {
     if (!selectedProcess) return;
-  
-    // Remove from ready queue
     setReadyQueue(prev => prev.filter(p => p.pid !== selectedProcess.pid));
-  
-    // Set as running process
     const runningProcessWithStartTime = { 
       ...selectedProcess, 
       state: 'running', 
@@ -230,21 +176,14 @@ setTotalBusyTime(prev => {
                        (Date.now() - (selectedProcess.readyQueueArrivalTime || Date.now())) / 1000
     };
     setRunningProcess(runningProcessWithStartTime);
-  
-
-    const timeQuantum = globalTimeQuantum * 1000; // Convert to milliseconds
-    const blockTime = 3000; // 3 seconds blocked time
-  
-    // Calculate actual execution time (minimum of remaining time or quantum)
+    const timeQuantum = globalTimeQuantum * 1000;
+    const blockTime = 3000;
     const remainingTimeMs = runningProcessWithStartTime.remainingTime * 1000;
     const actualExecutionTime = Math.min(remainingTimeMs, timeQuantum);
-  
     const processTimeout = setTimeout(() => {
       const completionTime = Date.now();
       const executedBurstTime = actualExecutionTime / 1000;
       const remainingBurstTime = runningProcessWithStartTime.remainingTime - executedBurstTime;
-  
-      // Update Gantt Chart with ACTUAL execution time
       setGanttChart(prev => [
         ...prev,
         {
@@ -254,17 +193,13 @@ setTotalBusyTime(prev => {
           duration: executedBurstTime
         }
       ]);
-  
-      // Update CPU Utilization with ACTUAL busy time
       setTotalBusyTime(prev => {
         const newTotalBusyTime = prev + actualExecutionTime;
         const totalSimulationTime = completionTime - simulationStartTime;
         setCpuUtilization((newTotalBusyTime / totalSimulationTime) * 100);
         return newTotalBusyTime;
       });
-  
       if (remainingBurstTime <= 0.1) {
-        // Process completed
         setTerminatedProcesses(prev => [
           ...prev,
           {
@@ -276,8 +211,6 @@ setTotalBusyTime(prev => {
             state: 'terminated'
           }
         ]);
-        
-        // Free memory
         setMemoryBlocks(prev => 
           prev.map(block => 
             block.process?.pid === runningProcessWithStartTime.pid 
@@ -286,7 +219,6 @@ setTotalBusyTime(prev => {
           )
         );
       } else {
-        // Block the process
         const blockedProcess = { 
           ...runningProcessWithStartTime, 
           state: 'blocked', 
@@ -294,17 +226,12 @@ setTotalBusyTime(prev => {
           remainingTime: remainingBurstTime,
           totalWaitingTime: runningProcessWithStartTime.totalWaitingTime
         };
-  
         setBlockedProcesses(prev => [...prev, blockedProcess]);
-  
-        // Unblock after blockTime
         setTimeout(() => {
           setBlockedProcesses(prevBlocked => {
             const updatedBlocked = prevBlocked.filter(
               p => p.pid !== blockedProcess.pid
             );
-            
-            // Add back to ready queue if not already there
             setReadyQueue(prev => {
               const isAlreadyInReadyQueue = prev.some(p => p.pid === blockedProcess.pid);
               return isAlreadyInReadyQueue ? prev : [
@@ -316,37 +243,26 @@ setTotalBusyTime(prev => {
                 }
               ];
             });
-  
             return updatedBlocked;
           });
         }, blockTime);
       }
-  
       setRunningProcess(null);
-    }, actualExecutionTime); // Use ACTUAL execution time for timeout
+    }, actualExecutionTime);
   }, [simulationStartTime,globalTimeQuantum]);
 
-
-
-  // Process Selection Logic
   const selectProcess = useCallback(() => {
     if (runningProcess || readyQueue.length === 0) return null;
-  
     switch (currentSchedulingAlgorithm) {
       case 'FCFS':
-        // FCFS: Select the process that has been in the ready queue the longest
         return readyQueue[0];
-      
       case 'SJF':
-        // SJF: Select process with the shortest burst time
         return readyQueue.reduce((shortest, current) =>
           current.burstTime < shortest.burstTime ? current :
           (current.burstTime === shortest.burstTime &&
            current.readyQueueArrivalTime < shortest.readyQueueArrivalTime ? current : shortest)
         );
-      
       case 'Priority':
-          // Priority: Select process with the highest priority (lowest priority number)
           return readyQueue.reduce((highestPriority, current) =>
             current.priority < highestPriority.priority ? current :
             (current.priority === highestPriority.priority &&
@@ -354,7 +270,6 @@ setTotalBusyTime(prev => {
           );
       case 'RR':
         if (window.location.pathname === '/rr') {
-          // Move the first process to the end of the queue
           const currentProcess = readyQueue[0];
           setReadyQueue(prev => {
             const updatedQueue = [...prev.slice(1), currentProcess];
@@ -363,16 +278,13 @@ setTotalBusyTime(prev => {
           return currentProcess;
         }
         return readyQueue[0];
-      
       default:
         return readyQueue[0];
     }
   }, [readyQueue, runningProcess, currentSchedulingAlgorithm]);
   
-  // Process Execution Management
   useEffect(() => {
     const selectedProcess = selectProcess();
-    
     if (selectedProcess) {
       if (currentSchedulingAlgorithm === 'RR' && window.location.pathname === '/rr') {
         executeProcessRR(selectedProcess);
@@ -382,26 +294,21 @@ setTotalBusyTime(prev => {
     }
   }, [readyQueue, runningProcess, currentSchedulingAlgorithm, selectProcess, executeProcessFCFSSJF, executeProcessRR]);
 
-  // Add a route change listener to update scheduling algorithm
   useEffect(() => {
     const handleRouteChange = () => {
       setCurrentSchedulingAlgorithm(getCurrentSchedulingAlgorithm());
     };
-
     window.addEventListener('popstate', handleRouteChange);
     return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
 
-  // Metrics Calculation
   const calculateMetrics = () => {
     if (terminatedProcesses.length === 0) return { 
       avgWaitingTime: 0, 
       avgTurnaroundTime: 0 
     };
-
     const avgWaitingTime = terminatedProcesses.reduce((sum, p) => sum + p.waitingTime, 0) / terminatedProcesses.length;
     const avgTurnaroundTime = terminatedProcesses.reduce((sum, p) => sum + p.turnaroundTime, 0) / terminatedProcesses.length;
-
     return { avgWaitingTime, avgTurnaroundTime };
   };
 

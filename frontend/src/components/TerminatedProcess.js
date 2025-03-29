@@ -6,14 +6,14 @@ const TerminatedProcess = ({ terminatedProcess }) => {
       {terminatedProcess ? (
         <>
           <div className="terminated-process-circle">
-            <span>{terminatedProcess.pid}</span> {/* Display the PID inside the circle */}
+            <span>{terminatedProcess.pid}</span> 
           </div>
           <div className="terminated-process-burst-time">
-            Burst Time: {terminatedProcess.burstTime} {/* Display burst time next to PID */}
+            Burst Time: {terminatedProcess.burstTime}
           </div>
         </>
       ) : (
-        <p></p> // This is the fallback when there's no terminated process
+        <p></p> 
       )}
     </div>
   );

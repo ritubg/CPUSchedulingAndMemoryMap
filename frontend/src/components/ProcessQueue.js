@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 const ProcessQueue = ({ processes }) => {
   useEffect(() => {
     const queueContainer = document.querySelector('.process-queue');
-    // Ensure the new processes are always scrolled into view
     queueContainer.scrollLeft = queueContainer.scrollWidth;
   }, [processes]);
 
