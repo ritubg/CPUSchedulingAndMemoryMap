@@ -1,37 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ProcessInput = ({ onAddProcess, algorithm }) => {
   const [pid, setPid] = useState('');
   const [numPages, setNumPages] = useState('');
   const [burstTime, setBurstTime] = useState('');
-  const [timeQuantum, setTimeQuantum] = useState(''); // For RR only
   const [priority, setPriority] = useState(''); // For Priority algorithm
-
+  const [timeQuantum, setTimeQuantum] = useState('');
+  const [timeQuantumSet, setTimeQuantumSet] = useState(false);
+  
   const handleSubmit = (e) => {
     e.preventDefault();
-    const process = { 
-      pid, 
-      numPages: parseInt(numPages), 
-      burstTime: parseInt(burstTime) 
-    };
-
-    // Add priority for priority algorithm
-    if (algorithm === 'priority') {
-      process.priority = parseInt(priority);
+    
+    // If it's RR algorithm and time quantum is provided, but we're submitting a process
+    if (algorithm === 'rr') {
+      // For the first submission, include the time quantum
+      if (!timeQuantumSet && timeQuantum) {
+        const process = {
+          pid,
+          numPages: parseInt(numPages),
+          burstTime: parseInt(burstTime),
+          timeQuantum: parseInt(timeQuantum) // Send time quantum with first process
+        };
+        onAddProcess(process);
+        setTimeQuantumSet(true);
+      } else {
+        // For subsequent processes, don't include time quantum
+        const process = {
+          pid,
+          numPages: parseInt(numPages),
+          burstTime: parseInt(burstTime)
+        };
+        onAddProcess(process);
+      }
+    } else {
+      // For non-RR algorithms
+      const process = {
+        pid,
+        numPages: parseInt(numPages),
+        burstTime: parseInt(burstTime)
+      };
+      
+      // Add priority for priority algorithm
+      if (algorithm === 'priority') {
+        process.priority = parseInt(priority);
+      }
+      
+      onAddProcess(process);
     }
-
-    if (algorithm === 'rr' && timeQuantum) {
-      process.timeQuantum = parseInt(timeQuantum);
-    }
-
-    onAddProcess(process);
+    
+    // Reset form fields
     setPid('');
     setNumPages('');
     setBurstTime('');
-    setTimeQuantum('');
     setPriority('');
+    
+    // Don't reset timeQuantum once it's set
+    // This line isn't necessary since we don't reset timeQuantum anymore
+    // if (!timeQuantumSet) {
+    //   setTimeQuantum('');
+    // }
   };
-
   const inputStyle = {
     width: "250px",
     height: "50px",

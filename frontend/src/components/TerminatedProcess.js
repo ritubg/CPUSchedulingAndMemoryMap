@@ -1,5 +1,4 @@
-//import React from 'react';
-import '../Styles/terminatedProcess.css'; // Ensure this path is correct for your CSS file
+import React from 'react';
 
 const TerminatedProcess = ({ terminatedProcess }) => {
   return (
