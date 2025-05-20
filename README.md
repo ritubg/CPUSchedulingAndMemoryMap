@@ -25,7 +25,7 @@ A **visual simulator** for various CPU scheduling algorithms with memory managem
   - **CPU utilization** statistics
   - **Gantt chart** visualization
 ## Deployment using Vercel
-    **Link** : https://cpu-scheduling-memory-map.vercel.app/
+    Link to the website : https://cpu-scheduling-memory-map.vercel.app/
 ## Getting Started
 1. **Clone the repository**:
    ```bash
